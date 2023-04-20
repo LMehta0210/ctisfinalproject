@@ -1,0 +1,583 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
+ */
+package edu.guilford.finalproject;
+
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
+import java.util.ArrayList;
+import javax.swing.JLayeredPane;
+import javax.swing.JTextField;
+import org.apache.commons.math4.legacy.linear.*;
+
+/**
+ *
+ * @author vm658
+ */
+public class Display extends JLayeredPane {
+
+    /**
+     * Creates new form Display
+     */
+    //Creates a list of the textbox objects
+    private ArrayList<JTextField> staticInputs = new ArrayList<JTextField>();
+    //Creates a list of the circle objects associated with the textbox objects
+    private ArrayList<CircleCharge> staticCircles = new ArrayList<CircleCharge>();
+    private int testx, testy; //location of the test charge
+    private CircleCharge testCharge = new CircleCharge(testx, testy); //testCharge objects
+
+    private double[] pathYs = new double[250]; //list of y-values for a path
+
+    public enum PathOptions {
+        SINE, PARABOLA, LINE, ZIGZAG
+    }
+    private PathOptions funcPath; //stores enum value
+    private double relVolt = 0; //holds relative voltage to when we start integrating
+    private double oldx, oldy; //holds previous position of the testCharge
+    private boolean integrating = false; //whether we are integrating
+
+    public Display() {
+        initComponents();
+        //adds every textbox to the list and creates an associated charge object
+        for (Component c : getComponents()) {
+            if (c instanceof JTextField) {
+                staticInputs.add((JTextField) c);
+                staticCircles.add(new CircleCharge(c.getX(), c.getY()));
+            }
+        }
+        //initializes default values
+        funcPath = PathOptions.LINE;
+        plotFunction();
+        testx = 1080 / 2;
+        testy = 400;
+        repaint();
+    }
+    //Determines the type of funcion and finds the y-value for a given x
+    private double evalFunc(double x) {
+        double y = 0;
+        switch (funcPath) {
+            case SINE:
+                y = 150 * Math.sin(4 * Math.PI / getWidth() * x);
+                break;
+            case PARABOLA:
+                y = .0025 * x * (x - getWidth() / 2);
+                break;
+            case LINE:
+                y = 0;
+                break;
+            case ZIGZAG:
+                if (x < getWidth() / 4) {
+                    y = .8*x;
+                } else {
+                    y = (getWidth() / 2 - x)*.8;
+                }
+                break;
+        }
+        return y;
+    }
+    //fills the pathYs list with the correct y-values for a given function
+    private void plotFunction() {
+        double y = 0;
+        for (int i = 0; i < pathYs.length; i++) {
+            double x = getWidth() / 2.0 / pathYs.length * i;
+            pathYs[i] = evalFunc(x);
+        }
+    }
+    //Sums the voltage from each charge
+    private double calcTotVoltage() {
+        double total = 0;
+        for (CircleCharge charge : staticCircles) {
+            total += charge.calcVoltage(testx, testy);
+        }
+        return total;
+    }
+    //Sums the E-field from each charge
+    private ArrayRealVector calcTotEField() {
+        //creates 2d vector
+        ArrayRealVector total = new ArrayRealVector(2);
+        for (CircleCharge charge : staticCircles) {
+            //adds to vector
+            total = total.add(charge.calcEField(testx, testy));
+        }
+        return total;
+    }
+    //Determines which staicCharge is being dragged and moves it with the mouse
+    private void dragCharge(java.awt.event.MouseEvent evt) {
+        JTextField jc = (JTextField) evt.getSource(); //determines which charge
+        //adds mouse pos to current position (mouse pos is relative to object)
+        jc.setLocation(jc.getX() + evt.getX() - 10, jc.getY() + evt.getY() - 10); 
+        repaint();
+    }
+    //Handles when we put in a new value for the charge
+    private void updateChargeValue(java.awt.event.ActionEvent evt) {
+        JTextField jc = (JTextField) evt.getSource();
+        double charge = Double.parseDouble(jc.getText()); //determines value enetered
+        //limits charge between -100 and 100
+        if (charge > 100) {
+            charge = 100;
+        } else if (charge < -100) {
+            charge = -100;
+        }
+        jc.setText(String.valueOf(charge)); //rewrites textbox with charge
+        staticCircles.get(staticInputs.indexOf(jc)).setCharge(charge); //sets the staticCharge object with the correct charge value
+        repaint();
+    }
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        buttonGroup1 = new javax.swing.ButtonGroup();
+        staticQ1 = new javax.swing.JTextField();
+        staticQ2 = new javax.swing.JTextField();
+        staticQ3 = new javax.swing.JTextField();
+        staticQ4 = new javax.swing.JTextField();
+        pathOption1 = new javax.swing.JRadioButton();
+        pathOption2 = new javax.swing.JRadioButton();
+        pathOption3 = new javax.swing.JRadioButton();
+        pathOption4 = new javax.swing.JRadioButton();
+        pathLabel = new javax.swing.JLabel();
+        XSlider = new javax.swing.JSlider();
+        XSliderLabel = new javax.swing.JLabel();
+        IntegrateCheckBox = new javax.swing.JCheckBox();
+        staticQ5 = new javax.swing.JTextField();
+        staticQ6 = new javax.swing.JTextField();
+
+        staticQ1.setColumns(4);
+        staticQ1.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        staticQ1.setText("0");
+        staticQ1.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseDragged(java.awt.event.MouseEvent evt) {
+                staticQ1MouseDragged(evt);
+            }
+        });
+        staticQ1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                staticQ1ActionPerformed(evt);
+            }
+        });
+
+        staticQ2.setColumns(4);
+        staticQ2.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        staticQ2.setText("0");
+        staticQ2.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseDragged(java.awt.event.MouseEvent evt) {
+                staticQ2MouseDragged(evt);
+            }
+        });
+        staticQ2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                staticQ2ActionPerformed(evt);
+            }
+        });
+
+        staticQ3.setColumns(4);
+        staticQ3.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        staticQ3.setText("0");
+        staticQ3.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseDragged(java.awt.event.MouseEvent evt) {
+                staticQ3MouseDragged(evt);
+            }
+        });
+        staticQ3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                staticQ3ActionPerformed(evt);
+            }
+        });
+
+        staticQ4.setColumns(4);
+        staticQ4.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        staticQ4.setText("0");
+        staticQ4.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseDragged(java.awt.event.MouseEvent evt) {
+                staticQ4MouseDragged(evt);
+            }
+        });
+        staticQ4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                staticQ4ActionPerformed(evt);
+            }
+        });
+
+        buttonGroup1.add(pathOption1);
+        pathOption1.setText("Sine");
+        pathOption1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                pathOption1ActionPerformed(evt);
+            }
+        });
+
+        buttonGroup1.add(pathOption2);
+        pathOption2.setText("Parabola");
+        pathOption2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                pathOption2ActionPerformed(evt);
+            }
+        });
+
+        buttonGroup1.add(pathOption3);
+        pathOption3.setSelected(true);
+        pathOption3.setText("Line");
+        pathOption3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                pathOption3ActionPerformed(evt);
+            }
+        });
+
+        buttonGroup1.add(pathOption4);
+        pathOption4.setText("ZigZag");
+        pathOption4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                pathOption4ActionPerformed(evt);
+            }
+        });
+
+        pathLabel.setText("Choose Path");
+
+        XSlider.setMajorTickSpacing(200);
+        XSlider.setMaximum(1000);
+        XSlider.setPaintTicks(true);
+        XSlider.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                XSliderStateChanged(evt);
+            }
+        });
+
+        XSliderLabel.setText("Move Charge");
+
+        IntegrateCheckBox.setText("Manually Integrate");
+        IntegrateCheckBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                IntegrateCheckBoxActionPerformed(evt);
+            }
+        });
+
+        staticQ5.setColumns(4);
+        staticQ5.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        staticQ5.setText("0");
+        staticQ5.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseDragged(java.awt.event.MouseEvent evt) {
+                staticQ5MouseDragged(evt);
+            }
+        });
+        staticQ5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                staticQ5ActionPerformed(evt);
+            }
+        });
+
+        staticQ6.setColumns(4);
+        staticQ6.setHorizontalAlignment(javax.swing.JTextField.CENTER);
+        staticQ6.setText("0");
+        staticQ6.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseDragged(java.awt.event.MouseEvent evt) {
+                staticQ6MouseDragged(evt);
+            }
+        });
+        staticQ6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                staticQ6ActionPerformed(evt);
+            }
+        });
+
+        setLayer(staticQ1, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        setLayer(staticQ2, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        setLayer(staticQ3, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        setLayer(staticQ4, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        setLayer(pathOption1, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        setLayer(pathOption2, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        setLayer(pathOption3, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        setLayer(pathOption4, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        setLayer(pathLabel, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        setLayer(XSlider, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        setLayer(XSliderLabel, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        setLayer(IntegrateCheckBox, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        setLayer(staticQ5, javax.swing.JLayeredPane.DEFAULT_LAYER);
+        setLayer(staticQ6, javax.swing.JLayeredPane.DEFAULT_LAYER);
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
+        this.setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(105, 105, 105)
+                        .addComponent(staticQ2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(153, 153, 153)
+                        .addComponent(staticQ6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 160, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(staticQ3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(staticQ4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(176, 176, 176))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(XSlider, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(pathLabel)
+                    .addComponent(pathOption4)
+                    .addComponent(pathOption3)
+                    .addComponent(pathOption2)
+                    .addComponent(pathOption1))
+                .addGap(36, 36, 36))
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(27, 27, 27)
+                        .addComponent(XSliderLabel)
+                        .addGap(37, 37, 37)
+                        .addComponent(IntegrateCheckBox))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(248, 248, 248)
+                        .addComponent(staticQ1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(263, 263, 263)
+                        .addComponent(staticQ5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(43, 43, 43)
+                .addComponent(pathLabel)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(pathOption1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(pathOption2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(pathOption3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(pathOption4)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(staticQ1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(16, 16, 16)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(staticQ3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(staticQ2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(27, 27, 27)
+                        .addComponent(staticQ5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(43, 43, 43)
+                        .addComponent(staticQ4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 120, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(XSliderLabel)
+                            .addComponent(IntegrateCheckBox))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(XSlider, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap())
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(staticQ6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(190, 190, 190))))
+        );
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void staticQ1MouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_staticQ1MouseDragged
+        // TODO add your handling code here:
+        dragCharge(evt);
+    }//GEN-LAST:event_staticQ1MouseDragged
+
+    private void staticQ1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_staticQ1ActionPerformed
+        // TODO add your handling code here:
+        updateChargeValue(evt);
+    }//GEN-LAST:event_staticQ1ActionPerformed
+
+    private void staticQ2MouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_staticQ2MouseDragged
+        // TODO add your handling code here:
+        dragCharge(evt);
+    }//GEN-LAST:event_staticQ2MouseDragged
+
+    private void staticQ2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_staticQ2ActionPerformed
+        // TODO add your handling code here:
+        updateChargeValue(evt);
+    }//GEN-LAST:event_staticQ2ActionPerformed
+
+    private void staticQ3MouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_staticQ3MouseDragged
+        // TODO add your handling code here:
+        dragCharge(evt);
+    }//GEN-LAST:event_staticQ3MouseDragged
+
+    private void staticQ3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_staticQ3ActionPerformed
+        // TODO add your handling code here:
+        updateChargeValue(evt);
+    }//GEN-LAST:event_staticQ3ActionPerformed
+
+    private void staticQ4MouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_staticQ4MouseDragged
+        // TODO add your handling code here:
+        dragCharge(evt);
+    }//GEN-LAST:event_staticQ4MouseDragged
+
+    private void staticQ4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_staticQ4ActionPerformed
+        // TODO add your handling code here:
+        updateChargeValue(evt);
+    }//GEN-LAST:event_staticQ4ActionPerformed
+
+    private void pathOption1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pathOption1ActionPerformed
+        // TODO add your handling code here:
+        funcPath = PathOptions.SINE; //sets the correct path type
+        plotFunction(); //redetermines the y-values
+        testy = (int) (getHeight() / 2 + evalFunc(testx - .25 * getWidth())); //keeps the testCharge on the path by calculating the new y
+        repaint();
+    }//GEN-LAST:event_pathOption1ActionPerformed
+
+    private void pathOption2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pathOption2ActionPerformed
+        // TODO add your handling code here:
+        funcPath = PathOptions.PARABOLA;
+        plotFunction();
+        testy = (int) (getHeight() / 2 + evalFunc(testx - .25 * getWidth()));
+        repaint();
+    }//GEN-LAST:event_pathOption2ActionPerformed
+
+    private void pathOption3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pathOption3ActionPerformed
+        // TODO add your handling code here:
+        funcPath = PathOptions.LINE;
+        plotFunction();
+        testy = (int) (getHeight() / 2 + evalFunc(testx - .25 * getWidth()));
+        repaint();
+    }//GEN-LAST:event_pathOption3ActionPerformed
+
+    private void pathOption4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pathOption4ActionPerformed
+        // TODO add your handling code here:
+        funcPath = PathOptions.ZIGZAG;
+        plotFunction();
+        testy = (int) (getHeight() / 2 + evalFunc(testx - .25 * getWidth()));
+        repaint();
+    }//GEN-LAST:event_pathOption4ActionPerformed
+
+    private void XSliderStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_XSliderStateChanged
+        // TODO add your handling code here:
+        //determines float values for the x and y
+        double ftestx = .25 * getWidth() + getWidth() / 2000.0 * XSlider.getValue(); 
+        double ftesty = getHeight() / 2 + evalFunc(ftestx - .25 * getWidth());
+        testx = (int) ftestx;
+        testy = (int) ftesty; 
+        if (integrating) {
+            //creates a dr vector using the float values of testx and testy 
+            ArrayRealVector dr = new ArrayRealVector(new double[]{ftestx - oldx, ftesty - oldy});
+            //calculates the relative voltage with the integral dV = E *dr
+            relVolt += dr.dotProduct(calcTotEField());
+        }
+        //holds old values for x and y to determine future dr vectors
+        oldx = ftestx; 
+        oldy = ftesty;
+        repaint();
+    }//GEN-LAST:event_XSliderStateChanged
+    //starts integration
+    private void IntegrateCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_IntegrateCheckBoxActionPerformed
+        // TODO add your handling code here:
+        relVolt = 0;
+        //sets integration true or false depending on if the box is selected
+        integrating = IntegrateCheckBox.isSelected(); 
+        repaint();
+    }//GEN-LAST:event_IntegrateCheckBoxActionPerformed
+
+    private void staticQ5MouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_staticQ5MouseDragged
+        // TODO add your handling code here:
+        dragCharge(evt);
+    }//GEN-LAST:event_staticQ5MouseDragged
+
+    private void staticQ5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_staticQ5ActionPerformed
+        // TODO add your handling code here:
+        updateChargeValue(evt);
+    }//GEN-LAST:event_staticQ5ActionPerformed
+
+    private void staticQ6MouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_staticQ6MouseDragged
+        // TODO add your handling code here:
+        dragCharge(evt);
+    }//GEN-LAST:event_staticQ6MouseDragged
+
+    private void staticQ6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_staticQ6ActionPerformed
+        // TODO add your handling code here:
+        updateChargeValue(evt);
+    }//GEN-LAST:event_staticQ6ActionPerformed
+
+   //draws everything
+    @Override
+    public void paintComponent(Graphics g) {
+        //creates graphics object for us to draw on
+        super.paintComponent(g);
+        Graphics2D g2 = (Graphics2D) g;
+        //sets pencil size
+        g2.setStroke(new BasicStroke(10));
+        //draws circle for every static Charge with the correct color
+        for (int i = 0; i < staticCircles.size(); i++) {
+            g2.setColor(staticCircles.get(i).getDrawColor());
+            //draws the correct circle at the x and y location of the textbox
+            g2.draw(staticCircles.get(i).getCircle(staticInputs.get(i).getX(), staticInputs.get(i).getY(), true));
+        }
+        //draws test charge
+        g2.setColor(new Color(255, 0, 0, 200));
+        g2.fill(testCharge.getCircle(testx, testy, false));
+        //draws path endpoints
+        g2.setColor(Color.BLACK);
+        g2.fill(new Ellipse2D.Double(getWidth() * 1 / 4 - 10, getHeight() / 2 - 10, 20, 20));
+        g2.fill(new Ellipse2D.Double(getWidth() * 3 / 4 - 10, getHeight() / 2 - 10, 20, 20));
+        //Draws Field Arrow
+        ArrayRealVector totalField = calcTotEField();
+        g2.setStroke(new BasicStroke(3));
+        int endx = (int) (testx + totalField.getEntry(0));
+        int endy = (int) (testy + totalField.getEntry(1));
+        g2.draw(new Line2D.Double(testx, testy, endx, endy));
+
+        //Draws Arrow Head
+        double angle = Math.atan2(totalField.getEntry(1), totalField.getEntry(0));
+        g2.draw(new Line2D.Double(endx, endy, (int) (endx - 10 * Math.cos(Math.PI / 5 + angle)), (int) (endy - 10 * Math.sin(Math.PI / 5 + angle))));
+        g2.draw(new Line2D.Double(endx, endy, (int) (endx - 10 * Math.cos(angle - Math.PI / 5)), (int) (endy - 10 * Math.sin(angle - Math.PI / 5))));
+        
+        //displays text with the numbers
+        Font font = new Font("Arial", Font.BOLD, 24);
+        g2.setFont(font);
+        g2.drawString(String.format("E-Field: {%.2f, %.2f}", totalField.getEntry(0), totalField.getEntry(1)), 0, 30);
+        g2.drawString(String.format("Voltage: %.2f", calcTotVoltage()), 0, 60);
+
+        if (integrating) {
+            g2.drawString(String.format("Relative Voltage: %.2f", relVolt), 0, 90);
+        }
+
+        //resets stroke
+        g2.setStroke(new BasicStroke(1));
+        //draw function
+        for (int i = 0; i < pathYs.length; i++) {
+            double x = i * getWidth() / 2 / pathYs.length;
+            g2.fill(new Ellipse2D.Double(getWidth() / 4 + x - 2, getHeight() / 2 + pathYs[i] - 2, 4, 4));
+        }
+
+    }
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JCheckBox IntegrateCheckBox;
+    private javax.swing.JSlider XSlider;
+    private javax.swing.JLabel XSliderLabel;
+    private javax.swing.ButtonGroup buttonGroup1;
+    private javax.swing.JLabel pathLabel;
+    private javax.swing.JRadioButton pathOption1;
+    private javax.swing.JRadioButton pathOption2;
+    private javax.swing.JRadioButton pathOption3;
+    private javax.swing.JRadioButton pathOption4;
+    private javax.swing.JTextField staticQ1;
+    private javax.swing.JTextField staticQ2;
+    private javax.swing.JTextField staticQ3;
+    private javax.swing.JTextField staticQ4;
+    private javax.swing.JTextField staticQ5;
+    private javax.swing.JTextField staticQ6;
+    // End of variables declaration//GEN-END:variables
+}
